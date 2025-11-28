@@ -7,7 +7,7 @@ const {
   updateGenre,
   deleteGenre
 } = require('../controllers/genreController');
-const { protect } = require('../middleware/auth');
+const { protect, requireAdmin } = require('../middleware/auth');
 
 /**
  * @openapi
@@ -106,7 +106,7 @@ router.get('/:id', protect, getGenre);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.post('/', protect, createGenre);
+router.post('/', protect, requireAdmin, createGenre);
 
 /**
  * @openapi
@@ -149,7 +149,7 @@ router.post('/', protect, createGenre);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.put('/:id', protect, updateGenre);
+router.put('/:id', protect, requireAdmin, updateGenre);
 
 /**
  * @openapi
@@ -186,7 +186,7 @@ router.put('/:id', protect, updateGenre);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.delete('/:id', protect, deleteGenre);
+router.delete('/:id', protect, requireAdmin, deleteGenre);
 
 module.exports = router;
 

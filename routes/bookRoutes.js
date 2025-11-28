@@ -8,7 +8,7 @@ const {
   deleteBook,
   updateReadingProgress
 } = require('../controllers/bookController');
-const { protect } = require('../middleware/auth');
+const { protect, requireAdmin } = require('../middleware/auth');
 const { bookValidation, validate } = require('../middleware/validation');
 
 /**
@@ -139,7 +139,7 @@ router.get('/:id', protect, getBook);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.post('/', protect, bookValidation, validate, createBook);
+router.post('/', protect, requireAdmin, bookValidation, validate, createBook);
 
 /**
  * @openapi
@@ -182,7 +182,7 @@ router.post('/', protect, bookValidation, validate, createBook);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.put('/:id', protect, updateBook);
+router.put('/:id', protect, requireAdmin, updateBook);
 
 /**
  * @openapi
@@ -217,7 +217,7 @@ router.put('/:id', protect, updateBook);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.delete('/:id', protect, deleteBook);
+router.delete('/:id', protect, requireAdmin, deleteBook);
 
 /**
  * @openapi
