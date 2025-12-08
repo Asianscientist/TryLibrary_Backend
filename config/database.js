@@ -1,20 +1,18 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-// Support both DATABASE_URL (connection string) and individual environment variables
-let sequelize;
+// Use DATABASE_URL if provided
+const isRender = process.env.DATABASE_URL && process.env.DATABASE_URL.includes('render.com');
 
-if (process.env.DATABASE_URL) {
-  // Use connection string (common for production/cloud databases)
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+const sequelize = process.env.DATABASE_URL
+  ? new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     protocol: 'postgres',
     logging: process.env.NODE_ENV === 'development' ? console.log : false,
     dialectOptions: {
-      ssl: process.env.DB_SSL === 'true' || process.env.DATABASE_URL.includes('render.com') ? {
-        require: true,
-        rejectUnauthorized: false
-      } : false
+      ssl: isRender
+        ? { require: true, rejectUnauthorized: false }
+        : false
     },
     pool: {
       max: 5,
@@ -27,10 +25,8 @@ if (process.env.DATABASE_URL) {
       underscored: true,
       freezeTableName: true
     }
-  });
-} else {
-  // Use individual environment variables (for local development)
-  sequelize = new Sequelize(
+  })
+  : new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
     process.env.DB_PASSWORD,
@@ -39,6 +35,9 @@ if (process.env.DATABASE_URL) {
       port: process.env.DB_PORT || 5432,
       dialect: 'postgres',
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
+      dialectOptions: {
+        ssl: false
+      },
       pool: {
         max: 5,
         min: 0,
@@ -52,6 +51,5 @@ if (process.env.DATABASE_URL) {
       }
     }
   );
-}
 
 module.exports = sequelize;
