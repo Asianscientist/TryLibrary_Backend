@@ -1,3 +1,4 @@
+
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
@@ -37,12 +38,27 @@ const Book = sequelize.define('Book', {
   is_premium: {
     type: DataTypes.BOOLEAN,
     defaultValue: false
+  },
+
+  processing_status: {
+    type: DataTypes.ENUM('pending', 'processing', 'completed', 'failed'),
+    defaultValue: 'pending'
+  },
+  total_pages: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0
+  },
+  file_format: {
+    type: DataTypes.STRING
+  },
+  file_size: {
+    type: DataTypes.INTEGER
   }
 }, {
   tableName: 'books',
   timestamps: true,
   createdAt: 'created_at',
-  updatedAt: false
+  updatedAt: 'updated_at'
 });
 
 module.exports = Book;

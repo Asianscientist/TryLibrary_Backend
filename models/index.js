@@ -1,7 +1,9 @@
+// models/index.js
 const sequelize = require('../config/database');
 const User = require('./User');
 const Subscription = require('./Subscription');
 const Book = require('./Book');
+const BookPage = require('./BookPage');
 const Genre = require('./Genre');
 const BorrowRecord = require('./BorrowRecord');
 const ReadingHistory = require('./ReadingHistory');
@@ -13,6 +15,10 @@ Subscription.hasMany(User, { foreignKey: 'subscription_id' });
 
 Book.belongsTo(Genre, { foreignKey: 'genre_id' });
 Genre.hasMany(Book, { foreignKey: 'genre_id' });
+
+// ADD THESE BOOKPAGE ASSOCIATIONS
+Book.hasMany(BookPage, { foreignKey: 'book_id', onDelete: 'CASCADE' });
+BookPage.belongsTo(Book, { foreignKey: 'book_id' });
 
 BorrowRecord.belongsTo(User, { foreignKey: 'user_id' });
 BorrowRecord.belongsTo(Book, { foreignKey: 'book_id' });
@@ -33,6 +39,7 @@ module.exports = {
   User,
   Subscription,
   Book,
+  BookPage,  // ADD THIS TO EXPORTS
   Genre,
   BorrowRecord,
   ReadingHistory,
