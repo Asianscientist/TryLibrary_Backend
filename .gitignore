@@ -12,6 +12,7 @@ temp/
 
 # Dependency directories
 node_modules/
+uploads/
 
 # Environment files & secrets
 .env
