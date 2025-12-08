@@ -61,11 +61,10 @@ app.use('/api/subscriptions', subscriptionRoutes);
  */
 app.get('/api/health', async (req, res) => {
   try {
-    // Check database connection
     await sequelize.authenticate();
 
-    // Check Redis connection
-    const redisStatus = await bookProcessingQueue.client.ping();
+    const waiting = await bookProcessingQueue.getWaitingCount();
+    const active = await bookProcessingQueue.getActiveCount();
 
     res.json({
       status: 'OK',
@@ -74,12 +73,10 @@ app.get('/api/health', async (req, res) => {
       environment: process.env.NODE_ENV || 'development',
       services: {
         database: 'connected',
-        redis: redisStatus === 'PONG' ? 'connected' : 'disconnected',
+        redis: 'connected',
         queue: {
-          waiting: await bookProcessingQueue.getWaitingCount(),
-          active: await bookProcessingQueue.getActiveCount(),
-          completed: await bookProcessingQueue.getCompletedCount(),
-          failed: await bookProcessingQueue.getFailedCount()
+          waiting,
+          active
         }
       }
     });
@@ -106,6 +103,7 @@ app.get('/', (req, res) => {
       genres: '/api/genres',
       subscriptions: '/api/subscriptions',
       health: '/api/health',
+      test: '/api/test' // ADD THIS
     },
     features: {
       fileUpload: 'enabled',
