@@ -6,10 +6,13 @@ const {
   createBook,
   updateBook,
   deleteBook,
-  updateReadingProgress
+  updateReadingProgress,
+  getBookStatus,
+  getBookPage
 } = require('../controllers/bookController');
 const { protect, requireAdmin } = require('../middleware/auth');
 const { bookValidation, validate } = require('../middleware/validation');
+const upload = require('../config/multer');
 
 /**
  * @openapi
@@ -111,18 +114,55 @@ router.get('/:id', protect, getBook);
  * /api/books:
  *   post:
  *     tags: [Books]
- *     summary: Create a new book
+ *     summary: Upload and create a new book with cover image
+ *     description: Create a new book by uploading a book file and optional cover image. Requires admin privileges. Book content is processed asynchronously in the background.
  *     security:
  *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/BookRequest'
+ *             type: object
+ *             required:
+ *               - title
+ *               - bookFile
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: Book title
+ *                 example: "The Great Gatsby"
+ *               author_name:
+ *                 type: string
+ *                 description: Author name
+ *                 example: "F. Scott Fitzgerald"
+ *               description:
+ *                 type: string
+ *                 description: Book description or summary
+ *                 example: "A classic American novel about the Jazz Age"
+ *               genre_id:
+ *                 type: integer
+ *                 description: Genre ID (must exist in database)
+ *                 example: 1
+ *               publication_year:
+ *                 type: integer
+ *                 description: Year of publication
+ *                 example: 1925
+ *               is_premium:
+ *                 type: boolean
+ *                 description: Whether this is a premium book (subscription required)
+ *                 default: false
+ *               bookFile:
+ *                 type: string
+ *                 format: binary
+ *                 description: Book file (PDF, EPUB, DOCX, etc.)
+ *               coverImage:
+ *                 type: string
+ *                 format: binary
+ *                 description: Cover image file (optional)
  *     responses:
  *       201:
- *         description: Book created successfully
+ *         description: Book created successfully and queued for background processing
  *         content:
  *           application/json:
  *             schema:
@@ -130,16 +170,62 @@ router.get('/:id', protect, getBook);
  *               properties:
  *                 success:
  *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Book uploaded successfully. Processing in background."
  *                 data:
- *                   $ref: '#/components/schemas/Book'
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     title:
+ *                       type: string
+ *                     author_name:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     genre_id:
+ *                       type: integer
+ *                     publication_year:
+ *                       type: integer
+ *                     file_url:
+ *                       type: string
+ *                       description: Path to stored book file
+ *                     cover_url:
+ *                       type: string
+ *                       description: Path to stored cover image
+ *                     is_premium:
+ *                       type: boolean
+ *                     processing_status:
+ *                       type: string
+ *                       enum: [pending, processing, completed, failed]
+ *                       example: "pending"
+ *                     file_format:
+ *                       type: string
+ *                       example: "pdf"
+ *                     file_size:
+ *                       type: integer
+ *                       description: File size in bytes
  *       400:
  *         $ref: '#/components/responses/BadRequest'
  *       401:
  *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         description: Forbidden - Admin access required
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
-router.post('/', protect, requireAdmin, bookValidation, validate, createBook);
+router.post('/',
+  protect,
+  requireAdmin,
+  upload.fields([
+    { name: 'bookFile', maxCount: 1 },
+    { name: 'coverImage', maxCount: 1 }
+  ]),
+  createBook
+);
+
 
 /**
  * @openapi
@@ -182,6 +268,7 @@ router.post('/', protect, requireAdmin, bookValidation, validate, createBook);
  *       500:
  *         $ref: '#/components/responses/ServerError'
  */
+
 router.put('/:id', protect, requireAdmin, updateBook);
 
 /**
@@ -261,5 +348,7 @@ router.delete('/:id', protect, requireAdmin, deleteBook);
  *         $ref: '#/components/responses/ServerError'
  */
 router.post('/:id/progress', protect, updateReadingProgress);
+router.get('/:id/status', protect, requireAdmin, getBookStatus);
+router.get('/:id/pages/:pageNumber', protect, getBookPage);
 
 module.exports = router;
