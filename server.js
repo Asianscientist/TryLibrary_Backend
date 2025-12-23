@@ -173,14 +173,15 @@ const startServer = async () => {
     }
 
     // Start server
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {
       console.log('========================================');
       console.log(`✓ Server running on port ${PORT}`);
       console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`✓ API Docs: http://localhost:${PORT}/api-docs`);
+      console.log(`✓ API Docs: https://${process.env.RENDER_EXTERNAL_URL}/api-docs`);
       console.log(`✓ Upload directory: ${path.join(__dirname, 'uploads')}`);
       console.log('========================================');
     });
+
   } catch (error) {
     console.error('✗ Unable to start server:', error);
     process.exit(1);
