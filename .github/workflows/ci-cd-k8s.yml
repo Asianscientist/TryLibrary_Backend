@@ -23,3 +23,19 @@ jobs:
 
       - name: Run tests
         run: npm test
+      
+      - name: Set up Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Configure Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > $HOME/.kube/config
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install my-app ./my-helm-chart --namespace my-namespace
+
+      - name: Verify Deployment
+        run: |
+          kubectl rollout status deployment/my-app -n my-namespace
